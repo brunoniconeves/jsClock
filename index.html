@@ -1,0 +1,83 @@
+<div id="clock"></div>
+<button id="start">Start</button>
+<button id="stop">Pause</button>
+<button id="reset">Reset</button>
+
+<script>
+const clock = document.getElementById("clock");
+const startButton = document.getElementById("start");
+const stopButton = document.getElementById("stop");
+const resetButton = document.getElementById("reset");
+
+let startTime = null;
+let elapsed = 0;
+let isRunning = false;
+let requestID = null;
+let pauseTime = null;
+
+function updateClock(timestamp) {
+  if (!startTime) {
+    startTime = timestamp;
+  }
+
+  if (isRunning) {
+    if (pauseTime) {
+      startTime = timestamp - pauseTime;
+      pauseTime = null;
+    }
+    elapsed = timestamp - startTime;
+  }
+
+  let minutes = Math.floor(elapsed / 60000);
+  let seconds = Math.floor((elapsed % 60000) / 1000);
+  let milliseconds = Math.floor((elapsed % 1000) / 10);
+
+  minutes = minutes < 10 ? "0" + minutes : minutes;
+  seconds = seconds < 10 ? "0" + seconds : seconds;
+  milliseconds = milliseconds < 10 ? "0" + milliseconds : milliseconds;
+
+  clock.textContent = `${minutes}:${seconds}:${milliseconds}`;
+
+  requestID = requestAnimationFrame(updateClock);
+}
+
+function startClock() {
+  isRunning = true;
+  requestID = requestAnimationFrame(updateClock);
+}
+
+function stopClock() {
+  isRunning = false;
+  cancelAnimationFrame(requestID);
+  pauseTime = elapsed;
+}
+
+function resetClock() {
+  isRunning = false;
+  cancelAnimationFrame(requestID);
+  startTime = null;
+  elapsed = 0;
+  pauseTime = null;
+  clock.textContent = "00:00:00";
+}
+
+function resumeClock() {
+  isRunning = true;
+  requestID = requestAnimationFrame(updateClock);
+}
+
+startButton.addEventListener("click", startClock);
+stopButton.addEventListener("click", stopClock);
+resetButton.addEventListener("click", resetClock);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    stopClock();
+  } else {
+    if (pauseTime) {
+      resumeClock();
+    } else {
+      startClock();
+    }
+  }
+});
+</script>
