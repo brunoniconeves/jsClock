@@ -2,12 +2,16 @@
 <button id="start">Start</button>
 <button id="stop">Pause</button>
 <button id="reset">Reset</button>
+<button id="setTime">Set time</button>
+<input id="time-input">
 
 <script>
 const clock = document.getElementById("clock");
 const startButton = document.getElementById("start");
 const stopButton = document.getElementById("stop");
 const resetButton = document.getElementById("reset");
+  const setTimeButton = document.getElementById("setTime");
+  const timeInput = document.getElementById("time-input");
 
 let startTime = null;
 let elapsed = 0;
@@ -52,23 +56,43 @@ function stopClock() {
   pauseTime = elapsed;
 }
 
-function resetClock() {
+function resetClock(initialTime) {
   isRunning = false;
   cancelAnimationFrame(requestID);
   startTime = null;
-  elapsed = 0;
+  elapsed = initialTime || 0;
   pauseTime = null;
-  clock.textContent = "00:00:00";
+  let minutes = Math.floor(elapsed / 60000);
+  let seconds = Math.floor((elapsed % 60000) / 1000);
+  let milliseconds = Math.floor((elapsed % 1000) / 10);
+  minutes = minutes < 10 ? "0" + minutes : minutes;
+  seconds = seconds < 10 ? "0" + seconds : seconds;
+  milliseconds = milliseconds < 10 ? "0" + milliseconds : milliseconds;
+  pauseTime = elapsed;
+  clock.textContent = `${minutes}:${seconds}:${milliseconds}`;
+}
+
+
+function setTime() {
+  let time = timeInput.value.split(":");
+  let hours = parseInt(time[0]) || 0;
+  let minutes = parseInt(time[1]) || 0;
+  let seconds = parseInt(time[2]) || 0;
+  let milliseconds = (hours * 3600000) + (minutes * 60000) + (seconds * 1000);
+  resetClock(milliseconds);
 }
 
 function resumeClock() {
   isRunning = true;
   requestID = requestAnimationFrame(updateClock);
 }
+  
+  
 
 startButton.addEventListener("click", startClock);
 stopButton.addEventListener("click", stopClock);
 resetButton.addEventListener("click", resetClock);
+setTimeButton.addEventListener("click", setTime);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
     stopClock();
